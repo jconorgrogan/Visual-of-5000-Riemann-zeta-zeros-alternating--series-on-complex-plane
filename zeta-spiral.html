@@ -91,8 +91,8 @@
     </label>
 
     <label>Line thickness:
-      <input type="range" id="thicknessSlider" min="0.01" max="5" value="0.2" step="0.01">
-      <span id="thicknessVal" class="small">0.20</span>
+      <input type="range" id="thicknessSlider" min="0.01" max="5" value="0.01" step="0.01">
+      <span id="thicknessVal" class="small">0.01</span>
     </label>
 
     <label>Opacity:
@@ -101,12 +101,12 @@
     </label>
 
     <label>Endpoint size:
-      <input type="range" id="endpointSlider" min="0" max="15" value="7" step="0.5">
-      <span id="endpointVal" class="small">7.0</span>
+      <input type="range" id="endpointSlider" min="0" max="15" value="1" step="0.5">
+      <span id="endpointVal" class="small">1.0</span>
     </label>
 
     <label>Number of zeros:
-      <input type="number" id="zerosInput" min="1" max="10000" value="200">
+      <input type="number" id="zerosInput" min="1" max="10000" value="5000">
     </label>
     <button id="applyZerosBtn">Apply</button>
 
@@ -2683,7 +2683,7 @@
     let rotationX = -0.3, rotationZ = 0; // 3D camera rotation
     let showRotationToggle, showRotationPanel = false;
     let opacitySlider, opacityVal, lineOpacity = 0.8;
-    let endpointSlider, endpointVal, endpointSize = 7;
+    let endpointSlider, endpointVal, endpointSize = 1;
     let boldZerosToggle, boldZeros = false;
     let zAxisMode;
     let cumulativeDistances = []; // Track distance traveled for each zero
@@ -2691,18 +2691,41 @@
     let camRotationY = 0, camRotationX = 0; // Camera angles
     let zScale = 1.0; // Scale factor for z-axis normalization
 
-    const referenceCircles = Array.from({ length: 10 }, (_, idx) => {
-      const order = idx + 2; // √2 through √11
-      return {
-        radius: Math.sqrt(order) * 100,
-        hue: (idx * 36) % 360,
+    const referenceCircles = [
+      {
+        radius: Math.sqrt(2) * 100,
+        label: '√2',
+        labelAngle: -0.35,
+        hue: 210,
+        saturation: 60,
+        brightness: 85,
+        alpha2D: 40,
+        alpha3D: 35,
+        dash: [6, 8]
+      },
+      {
+        radius: Math.sqrt(5) * 100,
+        label: '√5',
+        labelAngle: -0.05,
+        hue: 120,
+        saturation: 60,
+        brightness: 80,
+        alpha2D: 40,
+        alpha3D: 35,
+        dash: [6, 8]
+      },
+      {
+        radius: Math.sqrt(7) * 100,
+        label: '√7',
+        labelAngle: 0.25,
+        hue: 300,
         saturation: 55,
         brightness: 85,
         alpha2D: 40,
         alpha3D: 35,
         dash: [6, 8]
-      };
-    });
+      }
+    ];
 
     // Caching state for performance
     let isPrecomputing = false;
@@ -3292,6 +3315,7 @@
 
       pop();
 
+      drawReferenceCircleLabels2D();
       drawHUD();
     }
 
@@ -3317,6 +3341,25 @@
             arc(0, 0, diameter, diameter, a1, a2);
           }
         }
+      }
+      pop();
+    }
+
+    function drawReferenceCircleLabels2D() {
+      if (mode3D) return;
+      push();
+      noStroke();
+      textAlign(CENTER, CENTER);
+      for (let i = 0; i < referenceCircles.length; i++) {
+        const circle = referenceCircles[i];
+        fill(circle.hue, circle.saturation, circle.brightness, 80);
+        const radius = circle.radius + 10;
+        const angle = circle.labelAngle;
+        const screenX = width / 2 + Math.cos(angle) * radius * zoomFactor;
+        const screenY = height / 2 + Math.sin(angle) * radius * zoomFactor;
+        const size = 13;
+        textSize(size);
+        text(circle.label, screenX, screenY);
       }
       pop();
     }
